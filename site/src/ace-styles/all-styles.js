@@ -1,5 +1,6 @@
+const fs = eval("require('fs')");
 // Ace
-import ace from 'brace';
+// import ace from 'brace';
 // Style creator
 import styleCreator from './styleCreator';
 // Schemes
@@ -64,30 +65,34 @@ const importedStyles = {
 	AyuMirage,
 };
 
+const out = './dist/schemes';
+fs.existsSync(out) || fs.mkdirSync(out);
+
 // Loop over and define
 Object.keys(importedStyles).forEach(key => {
 	const val = importedStyles[key];
-	ace.define(
-		`ace/theme/${key}`,
-		['require', 'exports', 'module', 'ace/lib/dom'],
-		function(acequire, exports, module) {
-			exports.isDark = val.type === 'dark';
-			exports.cssClass = `ace-${key}`;
-			exports.cssText = styleCreator(key, val);
-
-			var dom = acequire('../lib/dom');
-			dom.importCssString(exports.cssText, exports.cssClass);
-		}
-	);
+	const code = `ace.define(
+  'ace/theme/${key}',
+  ['require', 'exports', 'module', 'ace/lib/dom'],
+  function(acequire, exports, module) {
+    exports.isDark = ${val.type === 'dark'};
+    exports.cssClass = 'ace-${key}';
+    exports.cssText = ${JSON.stringify(styleCreator(key, val))};
+    var dom = acequire('../lib/dom');
+    dom.importCssString(exports.cssText, exports.cssClass);
+  }
+);
+`;
+	fs.writeFileSync(`./dist/schemes/${key}.js`, code);
 });
 
 // Prepare exports
-const styles = {};
-Object.keys(importedStyles).forEach(key => {
-	styles[key] = {
-		...importedStyles[key],
-		...methods,
-	};
-});
-
-export default styles;
+// const styles = {};
+// Object.keys(importedStyles).forEach(key => {
+// 	styles[key] = {
+// 		...importedStyles[key],
+// 		...methods,
+// 	};
+// });
+//
+// export default styles;
